@@ -1,0 +1,7 @@
+const PORT = Bun.env.PORT || 3001;
+const GITHUB_API_TOKEN = Bun.env.GITHUB_API_TOKEN;
+const GITHUB_OWNER = Bun.env.GITHUB_OWNER;
+const GITHUB_REPO = Bun.env.GITHUB_REPO;
+const JWT_SECRET = Bun.env.JWT_SECRET as String;
+
+export { PORT, GITHUB_API_TOKEN, GITHUB_OWNER, GITHUB_REPO,JWT_SECRET };

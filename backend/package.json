@@ -1,0 +1,28 @@
+{
+  "name": "manga_world_api",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "bun server.ts",
+    "dev": "bun --watch server.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "5.0.3",
+    "@types/jsonwebtoken": "9.0.10",
+    "@types/multer": "^2.0.0",
+    "axios": "1.10.0",
+    "cors": "^2.8.5",
+    "express": "5.1.0",
+    "jsonwebtoken": "9.0.2",
+    "mongoose": "8.16.3",
+    "multer": "^2.0.2"
+  }
+}
