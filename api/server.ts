@@ -11,6 +11,7 @@ import multer from "multer";
 import fs from "fs";
 import { uploadToGithub } from "./src/services/storage";
 import { readFile, unlink } from "node:fs/promises";
+import { json } from "node:stream/consumers";
 
 const app = express();
 app.use(express.json());
@@ -34,17 +35,47 @@ if (!GITHUB_API_TOKEN) {
   process.exit(1);
 }
 
-app.get("/", (req, res) => {
-  res.send("Hola");
+app.get("/mangas/:mangaName/:chapterNumber", (req, res) => {
+  const { mangaName, chapterNumber } = req.params;
+  axios
+    .get(
+      // ❗❗ Aquí es donde debes cambiar la URL ❗❗
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/mangas/${mangaName}/${chapterNumber}.json`,
+      {
+        headers: {
+          Authorization: `Bearer ${GITHUB_API_TOKEN}`,
+        },
+      }
+    )
+    .then((response) => {
+      // ❗❗ Obtienes la URL de descarga del JSON de la primera respuesta ❗❗
+      const downloadUrl = response.data.download_url;
+
+      // ❗❗ Haces una segunda solicitud para descargar el archivo JSON ❗❗
+      return axios.get(downloadUrl);
+    })
+    .then((downloadResponse) => {
+      // Ahora, `downloadResponse.data` ya es el objeto JSON, no necesitas decodificar ni parsear
+      const jsonData = downloadResponse.data;
+
+      return res.json(jsonData);
+    })
+    .catch((error) => {
+      console.error(
+        "Error al obtener el archivo desde GitHub:",
+        error.response ? error.response.data : error.message
+      );
+      return res
+        .status(500)
+        .json({ error: "No se pudo obtener el capítulo solicitado." });
+    });
 });
-
-
 app.post("/mangas/upload", upload.single("image"), async (req, res) => {
   try {
-    const { title, tags, author } = req.body;
+    const { title, tags, author, capNumber } = req.body;
     const image = req.file;
 
-    if (!title || !tags || !author || !image) {
+    if (!title || !tags || !author || !image || !capNumber) {
       if (image) {
         await unlink(image.path); // Elimina la imagen si algo falta
       }
@@ -62,7 +93,7 @@ app.post("/mangas/upload", upload.single("image"), async (req, res) => {
 
     // ⬇️ Lógica para subir el archivo a GitHub
     const fileContent = await readFile(image.path);
-    const githubFileName = `${title}/${image.filename}`;
+    const githubFileName = `${title}/${capNumber}.json`;
     const commitMessage = `Añadiendo el manga: ${title}`;
 
     // Pasa el Buffer directamente a la función
